@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0c0c0f;--surface:#111118;--raised:#181820;--border:#222230;--border2:#2a2a3e;
+  --text:#e8e8f0;--muted:#555570;--dim:#333348;
+  --c1:#00e5ff;--c2:#ff6b9d;--c3:#69ff87;--c4:#ffb830;
+}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:30px 30px;pointer-events:none;z-index:0;}
+
+/* HEADER */
+header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--border);}
+.logo{font-size:1.25rem;font-weight:800;letter-spacing:-0.03em;}
+.logo span{color:var(--c1);}
+.htag{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);border:1px solid var(--border2);padding:4px 12px;border-radius:99px;letter-spacing:0.1em;}
+
+/* NAV */
+nav{position:relative;z-index:10;display:flex;gap:2px;padding:0 28px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+nav::-webkit-scrollbar{display:none;}
+.tab{padding:13px 20px;background:transparent;border:none;font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.18s;white-space:nowrap;position:relative;top:1px;letter-spacing:0.03em;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--text);border-bottom-color:var(--c1);}
+
+/* LAYOUT */
+.app{position:relative;z-index:10;display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 109px);}
+@media(max-width:860px){.app{grid-template-columns:1fr;}}
+
+/* LEFT */
+.left{padding:28px;overflow-y:auto;border-right:1px solid var(--border);}
+
+/* FORMULA CARD */
+.fcard{background:var(--raised);border:1px solid var(--border2);border-radius:12px;padding:20px 22px;margin-bottom:20px;position:relative;overflow:hidden;}
+.fcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.fc1::before{background:linear-gradient(90deg,var(--c1),transparent);}
+.fc2::before{background:linear-gradient(90deg,var(--c2),transparent);}
+.fc3::before{background:linear-gradient(90deg,var(--c3),transparent);}
+.fc4::before{background:linear-gradient(90deg,var(--c4),transparent);}
+.ftag{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:8px;}
+.feq{font-family:'JetBrains Mono',monospace;font-size:clamp(0.85rem,1.8vw,1.1rem);line-height:2;color:var(--text);}
+.feq .v{color:var(--c1);}
+.fc2 .feq .v{color:var(--c2);}
+.fc3 .feq .v{color:var(--c3);}
+.fc4 .feq .v{color:var(--c4);}
+.fnote{font-size:0.78rem;color:var(--muted);margin-top:8px;line-height:1.6;font-family:'JetBrains Mono',monospace;}
+.fnote b{color:var(--text);}
+
+/* RESULTS */
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.rbox{background:var(--raised);border:1px solid var(--border2);border-radius:10px;padding:14px;text-align:center;}
+.rlbl{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
+.rval{font-family:'JetBrains Mono',monospace;font-size:1.25rem;font-weight:600;}
+.rfml{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--dim);margin-top:3px;}
+
+/* STEPS */
+.scard{background:var(--raised);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:20px;}
+.stitle{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:14px;}
+.step{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start;}
+.step:last-child{margin-bottom:0;}
+.snum{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:600;flex-shrink:0;}
+.s1{background:rgba(0,229,255,0.12);color:var(--c1);}
+.s2{background:rgba(255,107,157,0.12);color:var(--c2);}
+.s3{background:rgba(105,255,135,0.12);color:var(--c3);}
+.s4{background:rgba(255,184,48,0.12);color:var(--c4);}
+.scnt{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text);line-height:1.7;}
+.scnt .d{color:var(--muted);}
+
+/* CHART */
+.ccard{background:var(--raised);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:20px;}
+.ctitle{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:14px;}
+.cwrap{position:relative;height:220px;}
+
+/* RIGHT PANEL */
+.right{padding:24px 20px;background:var(--surface);display:flex;flex-direction:column;gap:16px;}
+
+.clabel{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);}
+
+/* DISPLAY SCREEN */
+.screen{background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;min-height:72px;}
+.scr-field{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;}
+.scr-val{font-family:'JetBrains Mono',monospace;font-size:1.9rem;font-weight:500;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color 0.2s;}
+
+/* FIELD SELECTOR */
+.ftabs{display:flex;gap:6px;flex-wrap:wrap;}
+.ftab{flex:1;min-width:52px;padding:8px 4px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.4;}
+.ftab:hover{border-color:var(--dim);color:var(--text);}
+.ftab.a1{background:rgba(0,229,255,0.1);border-color:var(--c1);color:var(--c1);}
+.ftab.a2{background:rgba(255,107,157,0.1);border-color:var(--c2);color:var(--c2);}
+.ftab.a3{background:rgba(105,255,135,0.1);border-color:var(--c3);color:var(--c3);}
+.ftab.a4{background:rgba(255,184,48,0.1);border-color:var(--c4);color:var(--c4);}
+
+/* CURRENT VALUES SUMMARY */
+.csum{font-family:'JetBrains Mono',monospace;font-size:0.73rem;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:10px;}
+.csum b{color:var(--text);}
+
+/* KEYPAD */
+.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.key{height:50px;border-radius:9px;border:1px solid var(--border2);background:var(--raised);font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:500;color:var(--text);cursor:pointer;transition:all 0.1s;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;}
+.key:hover{background:var(--border);border-color:var(--border2);}
+.key:active{transform:scale(0.93);background:var(--dim);}
+.kback{background:rgba(255,107,157,0.08);border-color:rgba(255,107,157,0.2);color:var(--c2);font-size:1rem;}
+.kback:hover{background:rgba(255,107,157,0.16);}
+.kclr{background:rgba(255,184,48,0.08);border-color:rgba(255,184,48,0.2);color:var(--c4);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;}
+.kclr:hover{background:rgba(255,184,48,0.16);}
+.knext{grid-column:span 2;background:rgba(0,229,255,0.07);border-color:rgba(0,229,255,0.2);color:var(--c1);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;}
+.knext:hover{background:rgba(0,229,255,0.14);}
+.knext2{grid-column:span 2;background:rgba(255,107,157,0.07);border-color:rgba(255,107,157,0.2);color:var(--c2);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;}
+.knext2:hover{background:rgba(255,107,157,0.14);}
+.knext3{grid-column:span 2;background:rgba(105,255,135,0.07);border-color:rgba(105,255,135,0.2);color:var(--c3);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;}
+.knext3:hover{background:rgba(105,255,135,0.14);}
+.knext4{grid-column:span 2;background:rgba(255,184,48,0.07);border-color:rgba(255,184,48,0.2);color:var(--c4);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;}
+.knext4:hover{background:rgba(255,184,48,0.14);}
+.kcalc{grid-column:span 4;height:54px;border:none;border-radius:11px;font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;letter-spacing:0.08em;cursor:pointer;transition:all 0.15s;}
+.kcalc1{background:var(--c1);color:#0c0c0f;}
+.kcalc1:hover{background:#33eeff;transform:translateY(-1px);box-shadow:0 6px 22px rgba(0,229,255,0.3);}
+.kcalc2{background:var(--c2);color:#0c0c0f;}
+.kcalc2:hover{background:#ff8db8;transform:translateY(-1px);box-shadow:0 6px 22px rgba(255,107,157,0.3);}
+.kcalc3{background:var(--c3);color:#0c0c0f;}
+.kcalc3:hover{background:#90ffaa;transform:translateY(-1px);box-shadow:0 6px 22px rgba(105,255,135,0.3);}
+.kcalc4{background:var(--c4);color:#0c0c0f;}
+.kcalc4:hover{background:#ffc84a;transform:translateY(-1px);box-shadow:0 6px 22px rgba(255,184,48,0.3);}
+.kcalc:active{transform:scale(0.98)!important;}
+.kpm{color:var(--c2);}
+
+/* RV TABLE */
+.rvhdr{display:grid;grid-template-columns:1fr 1fr 28px;gap:7px;margin-bottom:5px;}
+.rvhdr span{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;padding:0 10px;}
+.rvrow{display:grid;grid-template-columns:1fr 1fr 28px;gap:7px;margin-bottom:6px;}
+.rvcell{background:var(--bg);border:1px solid var(--border2);border-radius:7px;padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:0.88rem;color:var(--text);cursor:pointer;transition:border-color 0.15s;user-select:none;}
+.rvcell.focused{border-color:var(--c4);}
+.rvdel{background:rgba(255,107,157,0.08);border:1px solid rgba(255,107,157,0.18);border-radius:7px;width:28px;height:36px;color:var(--c2);font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.rvdel:hover{background:rgba(255,107,157,0.18);}
+.sumbar{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:7px;border:1px solid var(--border2);margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-size:0.73rem;}
+.sumbar .sl{color:var(--muted);}
+.sumbar .sv{font-weight:600;margin-left:auto;}
+.addbtn{width:100%;padding:8px;border-radius:8px;background:rgba(255,184,48,0.06);border:1px dashed rgba(255,184,48,0.22);color:var(--c4);font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;transition:all 0.15s;margin-bottom:10px;}
+.addbtn:hover{background:rgba(255,184,48,0.12);}
+.rvscroll{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+
+/* HOME */
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+@media(max-width:600px){.hgrid{grid-template-columns:1fr;}}
+.hcard{border:1px solid var(--border2);border-radius:12px;padding:20px 18px;cursor:pointer;transition:all 0.22s;position:relative;overflow:hidden;}
+.hcard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.h1{background:rgba(0,229,255,0.04);}  .h1::after{background:var(--c1);} .h1:hover{background:rgba(0,229,255,0.09);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,229,255,0.1);}
+.h2{background:rgba(255,107,157,0.04);} .h2::after{background:var(--c2);} .h2:hover{background:rgba(255,107,157,0.09);transform:translateY(-3px);box-shadow:0 8px 28px rgba(255,107,157,0.1);}
+.h3{background:rgba(105,255,135,0.04);} .h3::after{background:var(--c3);} .h3:hover{background:rgba(105,255,135,0.09);transform:translateY(-3px);box-shadow:0 8px 28px rgba(105,255,135,0.1);}
+.h4{background:rgba(255,184,48,0.04);}  .h4::after{background:var(--c4);} .h4:hover{background:rgba(255,184,48,0.09);transform:translateY(-3px);box-shadow:0 8px 28px rgba(255,184,48,0.1);}
+.hico{font-size:1.7rem;margin-bottom:9px;}
+.hname{font-size:0.95rem;font-weight:700;margin-bottom:4px;}
+.hdesc{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+.hgo{font-size:0.72rem;font-weight:700;margin-top:11px;display:flex;align-items:center;gap:4px;}
+.h1 .hgo{color:var(--c1);} .h2 .hgo{color:var(--c2);} .h3 .hgo{color:var(--c3);} .h4 .hgo{color:var(--c4);}
+.hf{background:var(--raised);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;}
+.hftag{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;}
+.hfeq{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text);line-height:1.9;}
+
+/* flash anim */
+.flash{animation:flashIn 0.35s ease;}
+@keyframes flashIn{0%{opacity:0;transform:scale(0.95)}60%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+
+.empty-msg{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.8rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Prob<span>Lab</span></div>
+  <span class="htag">PROBABILITY &amp; RANDOM PROCESSES</span>
+</header>
+
+<nav>
+  <button class="tab active" onclick="goTab('home')">Home</button>
+  <button class="tab" onclick="goTab('binom')">Binomial</button>
+  <button class="tab" onclick="goTab('poisson')">Poisson</button>
+  <button class="tab" onclick="goTab('normal')">Normal</button>
+  <button class="tab" onclick="goTab('rv')">Random Vars</button>
+</nav>
+
+<!-- ══════════ HOME ══════════ -->
+<div id="home" class="app">
+  <div class="left">
+    <div style="margin-bottom:24px">
+      <div style="font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:8px;line-height:1.2">Interactive Probability<br>Formula Calculator</div>
+      <div style="font-size:0.85rem;color:var(--muted);line-height:1.7">Use the <b style="color:var(--text)">calculator keypad</b> on the right to type values. Every formula calculates step-by-step with a live chart.</div>
+    </div>
+    <div class="hgrid">
+      <div class="hcard h1" onclick="goTab('binom')"><div class="hico">🎲</div><div class="hname">Binomial</div><div class="hdesc">n trials, success prob p. Find P(X=k).</div><div class="hgo">Open →</div></div>
+      <div class="hcard h2" onclick="goTab('poisson')"><div class="hico">⚡</div><div class="hname">Poisson</div><div class="hdesc">Events in time interval. Arrivals, calls.</div><div class="hgo">Open →</div></div>
+      <div class="hcard h3" onclick="goTab('normal')"><div class="hico">🔔</div><div class="hname">Normal</div><div class="hdesc">Bell curve. Heights, marks, errors.</div><div class="hgo">Open →</div></div>
+      <div class="hcard h4" onclick="goTab('rv')"><div class="hico">📊</div><div class="hname">Random Variables</div><div class="hdesc">E(X), Variance, Std Dev from any table.</div><div class="hgo">Open →</div></div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="clabel" style="margin-bottom:4px">All Formulas</div>
+    <div class="hf"><div class="hftag">Binomial</div><div class="hfeq">P(X=k) = C(n,k) × p<sup>k</sup> × (1-p)<sup>n-k</sup></div></div>
+    <div class="hf"><div class="hftag">Poisson</div><div class="hfeq">P(X=k) = (λ<sup>k</sup> × e<sup>-λ</sup>) / k!</div></div>
+    <div class="hf"><div class="hftag">Normal PDF</div><div class="hfeq">f(x) = 1/(σ√2π) × e<sup>-½((x-μ)/σ)²</sup></div></div>
+    <div class="hf"><div class="hftag">Expected Value &amp; Variance</div><div class="hfeq" style="color:var(--c4)">E(X) = Σ x·P(x)<br>Var(X) = E(X²) − [E(X)]²</div></div>
+  </div>
+</div>
+
+<!-- ══════════ BINOMIAL ══════════ -->
+<div id="binom" class="app" style="display:none">
+  <div class="left">
+    <div class="fcard fc1">
+      <div class="ftag">Binomial Distribution</div>
+      <div class="feq">P(X = k) = <span class="v">C(n,k)</span> × <span class="v">p</span><sup>k</sup> × (1 − <span class="v">p</span>)<sup>n−k</sup></div>
+      <div class="fnote"><b>C(n,k)</b> = n!/(k!(n-k)!) &nbsp;|&nbsp; <b>E(X)</b> = n·p &nbsp;|&nbsp; <b>Var(X)</b> = n·p·(1-p)</div>
+    </div>
+    <div class="rgrid">
+      <div class="rbox"><div class="rlbl">P(X = k)</div><div class="rval" id="b-rp" style="color:var(--c1)">—</div><div class="rfml">exact prob</div></div>
+      <div class="rbox"><div class="rlbl">Mean E(X)</div><div class="rval" id="b-rm" style="color:var(--c3)">—</div><div class="rfml">= n × p</div></div>
+      <div class="rbox"><div class="rlbl">Variance</div><div class="rval" id="b-rv" style="color:var(--c4)">—</div><div class="rfml">= n·p·(1-p)</div></div>
+    </div>
+    <div class="scard"><div class="stitle">Step-by-Step Working</div><div id="b-steps"><p class="empty-msg">Enter n, p, k with keypad → press CALCULATE</p></div></div>
+    <div class="ccard"><div class="ctitle">P(X = k) Distribution Chart</div><div class="cwrap"><canvas id="bChart"></canvas></div></div>
+  </div>
+  <div class="right">
+    <div class="clabel">Calculator</div>
+    <div class="screen"><div class="scr-field" id="b-sf">n — NUMBER OF TRIALS</div><div class="scr-val" id="b-sv" style="color:var(--c1)">0</div></div>
+    <div class="ftabs">
+      <div class="ftab a1" id="bft-n" onclick="bSel('n')">n<br><small>trials</small></div>
+      <div class="ftab" id="bft-p" onclick="bSel('p')">p<br><small>prob</small></div>
+      <div class="ftab" id="bft-k" onclick="bSel('k')">k<br><small>success</small></div>
+    </div>
+    <div class="csum"><span>n = <b id="bsn">—</b></span><span>p = <b id="bsp">—</b></span><span>k = <b id="bsk">—</b></span></div>
+    <div class="keypad">
+      <div class="key" onclick="bK('7')">7</div><div class="key" onclick="bK('8')">8</div><div class="key" onclick="bK('9')">9</div><div class="key kback" onclick="bK('back')">⌫</div>
+      <div class="key" onclick="bK('4')">4</div><div class="key" onclick="bK('5')">5</div><div class="key" onclick="bK('6')">6</div><div class="key kclr" onclick="bK('clr')">CLR</div>
+      <div class="key" onclick="bK('1')">1</div><div class="key" onclick="bK('2')">2</div><div class="key" onclick="bK('3')">3</div><div class="key knext" onclick="bK('next')">NEXT →</div>
+      <div class="key" onclick="bK('0')">0</div><div class="key" onclick="bK('.')">.</div>
+      <button class="key kcalc kcalc1" onclick="bCalc()" style="grid-column:span 4">CALCULATE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ POISSON ══════════ -->
+<div id="poisson" class="app" style="display:none">
+  <div class="left">
+    <div class="fcard fc2">
+      <div class="ftag">Poisson Distribution</div>
+      <div class="feq">P(X = k) = ( <span class="v">λ</span><sup>k</sup> × e<sup>−<span class="v">λ</span></sup> ) / k!</div>
+      <div class="fnote"><b>λ</b> = avg rate &nbsp;|&nbsp; <b>e</b> ≈ 2.71828 &nbsp;|&nbsp; <b>E(X)</b> = λ &nbsp;|&nbsp; <b>Var(X)</b> = λ</div>
+    </div>
+    <div class="rgrid">
+      <div class="rbox"><div class="rlbl">P(X = k)</div><div class="rval" id="p-rp" style="color:var(--c2)">—</div><div class="rfml">exact prob</div></div>
+      <div class="rbox"><div class="rlbl">Mean = Var</div><div class="rval" id="p-rm" style="color:var(--c3)">—</div><div class="rfml">= λ</div></div>
+      <div class="rbox"><div class="rlbl">Std Dev</div><div class="rval" id="p-rs" style="color:var(--c4)">—</div><div class="rfml">= √λ</div></div>
+    </div>
+    <div class="scard"><div class="stitle">Step-by-Step Working</div><div id="p-steps"><p class="empty-msg">Enter λ and k with keypad → press CALCULATE</p></div></div>
+    <div class="ccard"><div class="ctitle">Poisson PMF Distribution</div><div class="cwrap"><canvas id="pChart"></canvas></div></div>
+  </div>
+  <div class="right">
+    <div class="clabel">Calculator</div>
+    <div class="screen"><div class="scr-field" id="p-sf">λ — AVERAGE RATE OF EVENTS</div><div class="scr-val" id="p-sv" style="color:var(--c2)">0</div></div>
+    <div class="ftabs">
+      <div class="ftab a2" id="pft-lam" onclick="pSel('lam')">λ<br><small>rate</small></div>
+      <div class="ftab" id="pft-k" onclick="pSel('k')">k<br><small>events</small></div>
+    </div>
+    <div class="csum"><span>λ = <b id="psl">—</b></span><span>k = <b id="psk">—</b></span></div>
+    <div class="keypad">
+      <div class="key" onclick="pK('7')">7</div><div class="key" onclick="pK('8')">8</div><div class="key" onclick="pK('9')">9</div><div class="key kback" onclick="pK('back')">⌫</div>
+      <div class="key" onclick="pK('4')">4</div><div class="key" onclick="pK('5')">5</div><div class="key" onclick="pK('6')">6</div><div class="key kclr" onclick="pK('clr')">CLR</div>
+      <div class="key" onclick="pK('1')">1</div><div class="key" onclick="pK('2')">2</div><div class="key" onclick="pK('3')">3</div><div class="key knext2" onclick="pK('next')">NEXT →</div>
+      <div class="key" onclick="pK('0')">0</div><div class="key" onclick="pK('.')">.</div>
+      <button class="key kcalc kcalc2" onclick="pCalc()" style="grid-column:span 4">CALCULATE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ NORMAL ══════════ -->
+<div id="normal" class="app" style="display:none">
+  <div class="left">
+    <div class="fcard fc3">
+      <div class="ftag">Normal Distribution — PDF</div>
+      <div class="feq" style="font-size:0.9rem">f(x) = <span class="v">1/(σ√2π)</span> × exp( −½ × ((x − <span class="v">μ</span>) / <span class="v">σ</span>)² )</div>
+      <div class="fnote"><b>μ</b> = mean &nbsp;|&nbsp; <b>σ</b> = std dev &nbsp;|&nbsp; <b>Z</b> = (x−μ)/σ &nbsp;|&nbsp; 68-95-99.7 rule</div>
+    </div>
+    <div class="rgrid">
+      <div class="rbox"><div class="rlbl">f(x)</div><div class="rval" id="n-rf" style="color:var(--c3)">—</div><div class="rfml">PDF value</div></div>
+      <div class="rbox"><div class="rlbl">Z-Score</div><div class="rval" id="n-rz" style="color:var(--c1)">—</div><div class="rfml">= (x−μ)/σ</div></div>
+      <div class="rbox"><div class="rlbl">Variance σ²</div><div class="rval" id="n-rv" style="color:var(--c4)">—</div><div class="rfml">= σ²</div></div>
+    </div>
+    <div class="scard"><div class="stitle">Step-by-Step Working</div><div id="n-steps"><p class="empty-msg">Enter μ, σ, x with keypad → press CALCULATE</p></div></div>
+    <div class="ccard"><div class="ctitle">Normal Bell Curve f(x)</div><div class="cwrap"><canvas id="nChart"></canvas></div></div>
+  </div>
+  <div class="right">
+    <div class="clabel">Calculator</div>
+    <div class="screen"><div class="scr-field" id="n-sf">μ — MEAN (CENTER)</div><div class="scr-val" id="n-sv" style="color:var(--c3)">0</div></div>
+    <div class="ftabs">
+      <div class="ftab a3" id="nft-mu" onclick="nSel('mu')">μ<br><small>mean</small></div>
+      <div class="ftab" id="nft-sig" onclick="nSel('sig')">σ<br><small>std dev</small></div>
+      <div class="ftab" id="nft-x" onclick="nSel('x')">x<br><small>value</small></div>
+    </div>
+    <div class="csum"><span>μ = <b id="nsmu">—</b></span><span>σ = <b id="nssig">—</b></span><span>x = <b id="nsx">—</b></span></div>
+    <div class="keypad">
+      <div class="key" onclick="nK('7')">7</div><div class="key" onclick="nK('8')">8</div><div class="key" onclick="nK('9')">9</div><div class="key kback" onclick="nK('back')">⌫</div>
+      <div class="key" onclick="nK('4')">4</div><div class="key" onclick="nK('5')">5</div><div class="key" onclick="nK('6')">6</div><div class="key kclr" onclick="nK('clr')">CLR</div>
+      <div class="key" onclick="nK('1')">1</div><div class="key" onclick="nK('2')">2</div><div class="key" onclick="nK('3')">3</div><div class="key knext3" onclick="nK('next')">NEXT →</div>
+      <div class="key" onclick="nK('0')">0</div><div class="key" onclick="nK('.')">.</div><div class="key kpm" onclick="nK('pm')">±</div>
+      <button class="key kcalc kcalc3" onclick="nCalc()" style="grid-column:span 4">CALCULATE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ RANDOM VARIABLES ══════════ -->
+<div id="rv" class="app" style="display:none">
+  <div class="left">
+    <div class="fcard fc4">
+      <div class="ftag">Expected Value &amp; Variance</div>
+      <div class="feq">E(X) = Σ <span class="v">x</span>·P(x) &nbsp;&nbsp; Var(X) = E(X²) − [E(X)]²</div>
+      <div class="fnote"><b>σ</b> = √Var(X) &nbsp;|&nbsp; <b>E(aX+b)</b> = a·E(X)+b &nbsp;|&nbsp; <b>Var(aX+b)</b> = a²·Var(X)</div>
+    </div>
+    <div class="rgrid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="rbox"><div class="rlbl">E(X)</div><div class="rval" id="rv-ex" style="color:var(--c4)">—</div><div class="rfml">= Σ x·P(x)</div></div>
+      <div class="rbox"><div class="rlbl">Variance</div><div class="rval" id="rv-var" style="color:var(--c2)">—</div><div class="rfml">= E(X²)−[E(X)]²</div></div>
+      <div class="rbox"><div class="rlbl">E(X²)</div><div class="rval" id="rv-ex2" style="color:var(--c1)">—</div><div class="rfml">= Σ x²·P(x)</div></div>
+      <div class="rbox"><div class="rlbl">Std Dev σ</div><div class="rval" id="rv-std" style="color:var(--c3)">—</div><div class="rfml">= √Var(X)</div></div>
+    </div>
+    <div class="scard"><div class="stitle">Step-by-Step Working</div><div id="rv-steps"><p class="empty-msg">Fill in the table on the right → press CALCULATE</p></div></div>
+    <div class="ccard"><div class="ctitle">PMF Chart</div><div class="cwrap"><canvas id="rvChart"></canvas></div></div>
+  </div>
+  <div class="right">
+    <div class="clabel">Distribution Table</div>
+    <div class="screen" style="min-height:56px"><div class="scr-field" id="rv-sf">TAP A CELL TO EDIT</div><div class="scr-val" id="rv-sv" style="color:var(--c4);font-size:1.5rem">—</div></div>
+    <div class="rvhdr"><span>X value</span><span>P(X = x)</span><span></span></div>
+    <div class="rvscroll"><div id="rv-rows"></div></div>
+    <div class="sumbar"><span class="sl">Σ P(x) =</span><span class="sv" id="rv-sum">—</span><span id="rv-sumok" style="font-size:0.68rem"></span></div>
+    <button class="addbtn" onclick="rvAdd()">+ Add Row</button>
+    <div class="keypad">
+      <div class="key" onclick="rvK('7')">7</div><div class="key" onclick="rvK('8')">8</div><div class="key" onclick="rvK('9')">9</div><div class="key kback" onclick="rvK('back')">⌫</div>
+      <div class="key" onclick="rvK('4')">4</div><div class="key" onclick="rvK('5')">5</div><div class="key" onclick="rvK('6')">6</div><div class="key kclr" onclick="rvK('clr')">CLR</div>
+      <div class="key" onclick="rvK('1')">1</div><div class="key" onclick="rvK('2')">2</div><div class="key" onclick="rvK('3')">3</div><div class="key" onclick="rvK('0')">0</div>
+      <div class="key" onclick="rvK('.')">.</div><div class="key kpm" onclick="rvK('pm')">±</div>
+      <button class="key kcalc kcalc4" onclick="rvCalc()" style="grid-column:span 4">CALCULATE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CHART DEFAULTS ──
+Chart.defaults.color='#555570';
+Chart.defaults.font.family='JetBrains Mono';
+Chart.defaults.font.size=10;
+const CH={};
+
+function mkBar(id,labels,data,color,hi=-1){
+  if(CH[id])CH[id].destroy();
+  const ctx=document.getElementById(id).getContext('2d');
+  CH[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:data.map((_,i)=>i===hi?color:color+'44'),borderColor:data.map((_,i)=>i===hi?color:color+'77'),borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' P = '+c.raw.toFixed(5)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555570'}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555570'},beginAtZero:true}}}});
+}
+function mkLine(id,xs,ys,color){
+  if(CH[id])CH[id].destroy();
+  const ctx=document.getElementById(id).getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,220);
+  g.addColorStop(0,color+'55');g.addColorStop(1,color+'05');
+  CH[id]=new Chart(ctx,{type:'line',data:{labels:xs.map(x=>x.toFixed(1)),datasets:[{data:ys,borderColor:color,backgroundColor:g,borderWidth:2.5,pointRadius:0,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:c=>'x='+c[0].label,label:c=>' f(x)='+c.raw.toFixed(5)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555570',maxTicksLimit:8}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555570'},beginAtZero:true}}}});
+}
+
+// ── MATH ──
+function fact(n){n=Math.floor(Math.abs(n));if(n>20)return Infinity;if(n<=1)return 1;let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+function C(n,k){if(k>n||k<0)return 0;return fact(n)/(fact(k)*fact(n-k));}
+function bP(n,k,p){return C(n,k)*Math.pow(p,k)*Math.pow(1-p,n-k);}
+function poiP(l,k){return(Math.pow(l,k)*Math.exp(-l))/fact(k);}
+function norP(x,m,s){return(1/(s*Math.sqrt(2*Math.PI)))*Math.exp(-0.5*Math.pow((x-m)/s,2));}
+
+function flash(id){const el=document.getElementById(id);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
+
+// ── TABS ──
+const TABS=['home','binom','poisson','normal','rv'];
+function goTab(id){
+  TABS.forEach(t=>{
+    const el=document.getElementById(t);
+    if(el)el.style.display=t===id?'grid':'none';
+  });
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',TABS[i]===id));
+}
+
+// ════════ BINOMIAL ════════
+let BS={n:'',p:'',k:'',act:'n'};
+const BFL={n:'n — NUMBER OF TRIALS',p:'p — PROBABILITY OF SUCCESS (0 to 1)',k:'k — NUMBER OF SUCCESSES'};
+
+function bSel(f){
+  BS.act=f;
+  ['n','p','k'].forEach(x=>document.getElementById('bft-'+x).className='ftab'+(x===f?' a1':''));
+  document.getElementById('b-sf').textContent=BFL[f];
+  document.getElementById('b-sv').textContent=BS[f]||'0';
+}
+function bK(k){
+  let v=BS[BS.act];
+  if(k==='back')v=v.slice(0,-1)||'';
+  else if(k==='clr')v='';
+  else if(k==='next'){const o=['n','p','k'];bSel(o[(o.indexOf(BS.act)+1)%3]);return;}
+  else if(k==='.'){if(!v.includes('.'))v+=k;}
+  else{v=v==='0'||v===''?k:v+k;}
+  BS[BS.act]=v;
+  document.getElementById('b-sv').textContent=v||'0';
+  const m={n:'bsn',p:'bsp',k:'bsk'};
+  document.getElementById(m[BS.act]).textContent=v||'—';
+}
+function bCalc(){
+  const n=parseFloat(BS.n),p=parseFloat(BS.p),k=parseFloat(BS.k);
+  if(isNaN(n)||isNaN(p)||isNaN(k)){alert('Enter all 3 values: n, p, k');return;}
+  if(p<0||p>1){alert('p must be between 0 and 1');return;}
+  const ni=Math.round(n),ki=Math.round(k);
+  if(ki>ni){alert('k cannot be greater than n');return;}
+  const cn=C(ni,ki),pk=Math.pow(p,ki),qnk=Math.pow(1-p,ni-ki),prob=cn*pk*qnk;
+  const mean=ni*p,vari=ni*p*(1-p);
+  document.getElementById('b-rp').textContent=prob.toFixed(4); flash('b-rp');
+  document.getElementById('b-rm').textContent=mean.toFixed(4);
+  document.getElementById('b-rv').textContent=vari.toFixed(4);
+  document.getElementById('b-steps').innerHTML=`
+    <div class="step"><div class="snum s1">1</div><div class="scnt">C(${ni},${ki}) = ${ni}! / (${ki}! × ${ni-ki}!) = <b style="color:var(--c1)">${cn}</b></div></div>
+    <div class="step"><div class="snum s1">2</div><div class="scnt">p<sup>${ki}</sup> = ${p}<sup>${ki}</sup> = <b style="color:var(--c3)">${pk.toFixed(6)}</b></div></div>
+    <div class="step"><div class="snum s1">3</div><div class="scnt">(1−p)<sup>${ni-ki}</sup> = ${(1-p).toFixed(4)}<sup>${ni-ki}</sup> = <b style="color:var(--c4)">${qnk.toFixed(6)}</b></div></div>
+    <div class="step"><div class="snum s1">4</div><div class="scnt">P(X=${ki}) = ${cn} × ${pk.toFixed(5)} × ${qnk.toFixed(5)}<br>= <b style="color:var(--c1);font-size:1.05rem">${prob.toFixed(6)}</b></div></div>`;
+  const L=Array.from({length:ni+1},(_,i)=>i);
+  mkBar('bChart',L,L.map(i=>bP(ni,i,p)),'#00e5ff',ki);
+}
+
+// ════════ POISSON ════════
+let PS={lam:'',k:'',act:'lam'};
+function pSel(f){
+  PS.act=f;
+  ['lam','k'].forEach(x=>document.getElementById('pft-'+x).className='ftab'+(x===f?' a2':''));
+  document.getElementById('p-sf').textContent=f==='lam'?'λ — AVERAGE RATE OF EVENTS':'k — NUMBER OF OBSERVED EVENTS';
+  document.getElementById('p-sv').textContent=PS[f]||'0';
+}
+function pK(k){
+  let v=PS[PS.act];
+  if(k==='back')v=v.slice(0,-1)||'';
+  else if(k==='clr')v='';
+  else if(k==='next'){PS.act=PS.act==='lam'?'k':'lam';pSel(PS.act);return;}
+  else if(k==='.'){if(!v.includes('.'))v+=k;}
+  else{v=v==='0'||v===''?k:v+k;}
+  PS[PS.act]=v;
+  document.getElementById('p-sv').textContent=v||'0';
+  document.getElementById(PS.act==='lam'?'psl':'psk').textContent=v||'—';
+}
+function pCalc(){
+  const l=parseFloat(PS.lam),k=parseFloat(PS.k);
+  if(isNaN(l)||isNaN(k)){alert('Enter both λ and k');return;}
+  if(l<=0){alert('λ must be positive');return;}
+  const ki=Math.round(k),lk=Math.pow(l,ki),em=Math.exp(-l),kf=fact(ki),prob=lk*em/kf;
+  document.getElementById('p-rp').textContent=prob.toFixed(4); flash('p-rp');
+  document.getElementById('p-rm').textContent=l.toFixed(4);
+  document.getElementById('p-rs').textContent=Math.sqrt(l).toFixed(4);
+  document.getElementById('p-steps').innerHTML=`
+    <div class="step"><div class="snum s2">1</div><div class="scnt">λ<sup>k</sup> = ${l}<sup>${ki}</sup> = <b style="color:var(--c2)">${lk.toFixed(5)}</b></div></div>
+    <div class="step"><div class="snum s2">2</div><div class="scnt">e<sup>−λ</sup> = e<sup>−${l}</sup> = <b style="color:var(--c3)">${em.toFixed(6)}</b></div></div>
+    <div class="step"><div class="snum s2">3</div><div class="scnt">k! = ${ki}! = <b style="color:var(--c4)">${kf}</b></div></div>
+    <div class="step"><div class="snum s2">4</div><div class="scnt">P(X=${ki}) = ${lk.toFixed(4)} × ${em.toFixed(5)} / ${kf}<br>= <b style="color:var(--c2);font-size:1.05rem">${prob.toFixed(6)}</b></div></div>`;
+  const mK=Math.max(15,Math.ceil(l*3)),L=Array.from({length:mK+1},(_,i)=>i);
+  mkBar('pChart',L,L.map(i=>poiP(l,i)),'#ff6b9d',ki);
+}
+
+// ════════ NORMAL ════════
+let NS={mu:'',sig:'',x:'',act:'mu'};
+const NFL={mu:'μ — MEAN (CENTER)',sig:'σ — STANDARD DEVIATION',x:'x — VALUE TO EVALUATE'};
+function nSel(f){
+  NS.act=f;
+  ['mu','sig','x'].forEach(x=>document.getElementById('nft-'+x).className='ftab'+(x===f?' a3':''));
+  document.getElementById('n-sf').textContent=NFL[f];
+  document.getElementById('n-sv').textContent=NS[f]||'0';
+}
+function nK(k){
+  let v=NS[NS.act];
+  if(k==='back')v=v.slice(0,-1)||'';
+  else if(k==='clr')v='';
+  else if(k==='next'){const o=['mu','sig','x'];nSel(o[(o.indexOf(NS.act)+1)%3]);return;}
+  else if(k==='.'){if(!v.includes('.'))v+=k;}
+  else if(k==='pm'){v=v.startsWith('-')?v.slice(1):v?'-'+v:v;}
+  else{v=v==='0'||v===''?k:v+k;}
+  NS[NS.act]=v;
+  document.getElementById('n-sv').textContent=v||'0';
+  const m={mu:'nsmu',sig:'nssig',x:'nsx'};
+  document.getElementById(m[NS.act]).textContent=v||'—';
+}
+function nCalc(){
+  const mu=parseFloat(NS.mu),sig=parseFloat(NS.sig),x=parseFloat(NS.x);
+  if(isNaN(mu)||isNaN(sig)){alert('Enter μ and σ');return;}
+  if(sig<=0){alert('σ must be positive');return;}
+  const xv=isNaN(x)?mu:x;
+  const s1=sig*Math.sqrt(2*Math.PI),s2=Math.pow((xv-mu)/sig,2),s3=Math.exp(-0.5*s2);
+  const fx=s3/s1,z=(xv-mu)/sig;
+  document.getElementById('n-rf').textContent=fx.toFixed(5); flash('n-rf');
+  document.getElementById('n-rz').textContent=z.toFixed(4);
+  document.getElementById('n-rv').textContent=(sig*sig).toFixed(4);
+  document.getElementById('n-steps').innerHTML=`
+    <div class="step"><div class="snum s3">1</div><div class="scnt">σ√2π = ${sig}×${Math.sqrt(2*Math.PI).toFixed(4)} = <b style="color:var(--c3)">${s1.toFixed(5)}</b></div></div>
+    <div class="step"><div class="snum s3">2</div><div class="scnt">((x−μ)/σ)² = ((${xv}−${mu})/${sig})² = <b style="color:var(--c1)">${s2.toFixed(5)}</b></div></div>
+    <div class="step"><div class="snum s3">3</div><div class="scnt">e<sup>−½×${s2.toFixed(4)}</sup> = <b style="color:var(--c4)">${s3.toFixed(6)}</b></div></div>
+    <div class="step"><div class="snum s3">4</div><div class="scnt">f(${xv}) = ${s3.toFixed(5)} / ${s1.toFixed(4)}<br>= <b style="color:var(--c3);font-size:1.05rem">${fx.toFixed(6)}</b></div></div>
+    <div class="step"><div class="snum s3">5</div><div class="scnt">Z = (${xv}−${mu})/${sig} = <b style="color:var(--c1)">${z.toFixed(4)}</b></div></div>`;
+  const r=sig*4,pts=180,xs=Array.from({length:pts},(_,i)=>mu-r+(i/(pts-1))*2*r);
+  mkLine('nChart',xs,xs.map(xi=>norP(xi,mu,sig)),'#69ff87');
+}
+
+// ════════ RANDOM VARIABLES ════════
+let RVD=[{x:'1',p:'0.2'},{x:'2',p:'0.3'},{x:'3',p:'0.3'},{x:'4',p:'0.2'}];
+let RVA={row:0,col:'x'};
+
+function rvRender(){
+  document.getElementById('rv-rows').innerHTML=RVD.map((r,i)=>`
+    <div class="rvrow">
+      <div class="rvcell ${RVA.row===i&&RVA.col==='x'?'focused':''}" onclick="rvFocus(${i},'x')">${r.x||'0'}</div>
+      <div class="rvcell ${RVA.row===i&&RVA.col==='p'?'focused':''}" onclick="rvFocus(${i},'p')">${r.p||'0'}</div>
+      <div class="rvdel" onclick="rvDel(${i})">×</div>
+    </div>`).join('');
+  const s=RVD.reduce((a,r)=>a+(parseFloat(r.p)||0),0);
+  const ok=Math.abs(s-1)<0.002;
+  document.getElementById('rv-sum').textContent=s.toFixed(4);
+  document.getElementById('rv-sum').style.color=ok?'var(--c3)':'var(--c2)';
+  document.getElementById('rv-sumok').textContent=ok?'✓ Valid':'✗ Must = 1';
+  document.getElementById('rv-sumok').style.color=ok?'var(--c3)':'var(--c2)';
+  const v=RVA.col==='x'?RVD[RVA.row]?.x:RVD[RVA.row]?.p;
+  document.getElementById('rv-sf').textContent=`Row ${RVA.row+1} — ${RVA.col==='x'?'X value':'P(X = x)'}`;
+  document.getElementById('rv-sv').textContent=v||'0';
+}
+function rvFocus(row,col){RVA={row,col};rvRender();}
+function rvAdd(){RVD.push({x:'0',p:'0'});RVA={row:RVD.length-1,col:'x'};rvRender();}
+function rvDel(i){if(RVD.length<=1)return;RVD.splice(i,1);RVA.row=Math.min(RVA.row,RVD.length-1);rvRender();}
+function rvK(k){
+  const r=RVD[RVA.row];
+  let v=RVA.col==='x'?r.x:r.p;
+  if(k==='back')v=v.slice(0,-1)||'';
+  else if(k==='clr')v='';
+  else if(k==='.'){if(!v.includes('.'))v+=k;}
+  else if(k==='pm'){v=v.startsWith('-')?v.slice(1):v?'-'+v:v;}
+  else{v=v==='0'||v===''?k:v+k;}
+  if(RVA.col==='x')r.x=v;else r.p=v;
+  rvRender();
+}
+function rvCalc(){
+  const d=RVD.map(r=>({x:parseFloat(r.x),p:parseFloat(r.p)})).filter(r=>!isNaN(r.x)&&!isNaN(r.p));
+  if(!d.length)return;
+  const s=d.reduce((a,r)=>a+r.p,0);
+  if(Math.abs(s-1)>0.01){alert('Probabilities must sum to 1\nCurrent sum: '+s.toFixed(4));return;}
+  const ex=d.reduce((a,r)=>a+r.x*r.p,0);
+  const ex2=d.reduce((a,r)=>a+r.x*r.x*r.p,0);
+  const vari=ex2-ex*ex,std=Math.sqrt(Math.max(0,vari));
+  document.getElementById('rv-ex').textContent=ex.toFixed(4); flash('rv-ex');
+  document.getElementById('rv-ex2').textContent=ex2.toFixed(4);
+  document.getElementById('rv-var').textContent=vari.toFixed(4);
+  document.getElementById('rv-std').textContent=std.toFixed(4);
+  const t1=d.map(r=>`(${r.x}×${r.p})`).join('+');
+  const t2=d.map(r=>`(${r.x}²×${r.p})`).join('+');
+  document.getElementById('rv-steps').innerHTML=`
+    <div class="step"><div class="snum s4">1</div><div class="scnt">E(X) = Σ x·P(x)<br><span class="d">= ${t1}</span><br>= <b style="color:var(--c4)">${ex.toFixed(4)}</b></div></div>
+    <div class="step"><div class="snum s4">2</div><div class="scnt">E(X²) = Σ x²·P(x)<br><span class="d">= ${t2}</span><br>= <b style="color:var(--c1)">${ex2.toFixed(4)}</b></div></div>
+    <div class="step"><div class="snum s4">3</div><div class="scnt">Var(X) = ${ex2.toFixed(4)} − (${ex.toFixed(4)})²<br>= <b style="color:var(--c2)">${vari.toFixed(4)}</b></div></div>
+    <div class="step"><div class="snum s4">4</div><div class="scnt">σ = √${vari.toFixed(4)} = <b style="color:var(--c3)">${std.toFixed(4)}</b></div></div>`;
+  mkBar('rvChart',d.map(r=>'x='+r.x),d.map(r=>r.p),'#ffb830');
+}
+
+// ── INIT ──
+rvRender();
+</script>
+</body>
+</html>
